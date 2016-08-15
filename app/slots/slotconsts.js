@@ -20,7 +20,7 @@ var SlotConsts = {
   SLOT_DAY_UNIT: moment.DAY,
   SLOT_TIME_FORMAT: "YYYY-MM-DD HH",
   SLOT_TIME_UNIT: moment.HOUR,
-  SLOT_MAX_CARTONS: 1,
+  SLOT_MAX_CARTONS: 80,
   SLOT_CARTON_SIZE_REGULAR: {
     h: 15,
     w: 30,
