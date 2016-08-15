@@ -19,7 +19,7 @@ if (fs.existsSync(envFile)) {
  */
 const development = {
   appname: 'Slot Booking Service',
-  masterdb: 'slotorders',
+  appdb: 'slotorders',
   mongo: {
     host: '127.0.0.1',
     port: 27017

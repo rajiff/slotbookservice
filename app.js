@@ -9,6 +9,8 @@ const routes = require('./app/index');
 var config = require('./appconfig');
 var logger = require('./applogger');
 
+const mongoose = require('mongoose');
+
 var app = express();
 
 app.use(morgan('dev'));
@@ -16,6 +18,25 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
 }));
+
+var dbURI = 'mongodb://localhost/' + config.appdb;
+mongoose.connect(dbURI);
+mongoose.connection.on('connected', function() {
+  logger.debug('Mongoose connected to ' + dbURI);
+});
+mongoose.connection.on('error', function(err) {
+  logger.debug('Mongoose connection error: ' + err);
+});
+mongoose.connection.on('disconnected', function() {
+  logger.debug('Mongoose disconnected');
+});
+
+process.on('exit', function(err) {
+  mongoose.connection.close(function() {
+    logger.debug('Mongoose disconnected through app termination');
+  });
+});
+
 
 app.use('/', routes);
 
