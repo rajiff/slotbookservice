@@ -19,13 +19,13 @@ var schema = new mongoose.Schema({
     type: String,
     default: 'regular'
   },
-  "weightKg": {
-    type: Number,
-    default: 0
-  },
   "packed": {
     type: Boolean,
     default: false
+  },
+  "totalitems": {
+    type: Number,
+    default: 0
   },
   "items": [
     {
@@ -102,10 +102,6 @@ schema.methods = {
     });
 
     return (this.freeVolume() >= totVolume);
-  },
-
-  totalitems: function() {
-    return this.items.length;
   }
 }
 

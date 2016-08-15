@@ -13,56 +13,80 @@ var bookAvailableSlot = function(order, successCB, errorCB) {
     });
   }
 
-  var today = moment().format(SlotConsts.SLOT_DATE_FORMAT);
+  var reqDate = moment().format(SlotConsts.SLOT_DATE_FORMAT);
 
-  bookOrder(today, order).then(function(cartonColln) {
-    return successCB(cartonColln);
+  //Start finding slot with current day
+  return findSlotDay(1, reqDate, order, successCB, errorCB)
+}
+
+//Make a recursive attempts for the future days to find the slot for the order, 
+//however after max forward days or other error, it aborts
+function findSlotDay(daysAttempted, reqDate, order, successCB, errorCB) {
+
+  bookOrder(reqDate, order).then(function(bookedCarton) {
+    return successCB(bookedCarton);
   }).catch(function(err) {
-    return errorCB({
-      error: err
-    });
+
+    if (daysAttempted <= SlotConsts.SLOT_BOOKING_MAX_FUTURE_DAYS && err.error ==
+      'No slot available') {
+
+      //increment to future date by one day
+      ++daysAttempted;
+      reqDate = moment(reqDate)
+        .add(1, SlotConsts.SLOT_DAY_UNIT).format(SlotConsts.SLOT_DATE_FORMAT);
+
+      return findSlotDay(daysAttempted, reqDate, order, successCB, errorCB);
+
+    } else {
+      return errorCB(err);
+    }
   });
 }
 
 var bookOrder = function(reqDate, order) {
   return new Promise(function(resolve, reject) {
 
-    logger.debug("Trying to book order on ", reqDate, " for order ",
-      order.orderId);
+    logger.debug("Booking order ", order.orderid, " on ", reqDate);
 
     CartonModel.find({
-      slotday: reqDate
-    }, function(err, cartonColln) {
+      slotday: reqDate,
+      packed: false
+    }).sort({
+      totalitems: -1
+    }).exec(function(err, cartonColln) {
       if (err) {
-        reject(err);
+        reject({
+          error: err
+        });
       }
 
       if (!cartonColln || cartonColln.length <= 0) {
         reject({
-          error: "There are no slots found to book..!"
+          error: "There are no slots available try booking your order..!"
         });
       }
 
-      logger.debug("Found ", cartonColln.length,
-        " number of cartons for day: ", reqDate);
+      logger.debug("Attempting to find free carton among ",
+        cartonColln.length, " for day: ", reqDate);
 
+      //Ok lets find a free carton now, start assuming there is none
       var freeCarton = undefined;
 
-      //Find if slot still has space left for the items of the order
+      //Loop through day's cartons across slots
       for (i = 0; i < cartonColln.length; i++) {
         var cartn = cartonColln[i];
-        if (!cartn.packed) {
-          //check available volume
-          if (cartn.canFitItems(order.items)) {
-            freeCarton = cartn;
-            break;
-          } //end of checking for all items
-        } //end of checking if packed already
+
+        //check available volume
+        if (cartn.canFitItems(order.items)) {
+          freeCarton = cartn;
+          break;
+        } //end of checking for all items
+
       } //end of looping through all cartons
 
       if (freeCarton === undefined) {
         reject({
-          error: "No carton available..!"
+          error: "No slot available"
         });
       } else {
         //insert the order items to available cartons 
@@ -76,6 +100,9 @@ var bookOrder = function(reqDate, order) {
           });
         });
 
+        freeCarton.totalitems = freeCarton.items.length;
+
+        //Below volume of 1 would mean a box, less than 1 unit all sides, which is assumed to be not existing
         if (freeCarton.freeVolume() < 1) {
           freeCarton.packed = true;
         }
@@ -98,7 +125,7 @@ var bookOrder = function(reqDate, order) {
             slotday: savedCarton.slotday,
             cartontag: savedCarton.cartontag,
             size: savedCarton.size,
-            totalitems: savedCarton.totalitems()
+            totalitems: savedCarton.totalitems
           }
 
           //logger.debug("Order was booked to carton: ", savedCarton);

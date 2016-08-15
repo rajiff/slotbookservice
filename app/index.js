@@ -44,6 +44,8 @@ router.post('/cartons/day/', function(req, res, next) {
 
 });
 
+
+
 router.post('/slots/order', function(req, res, next) {
   var order = req.body;
 
@@ -60,9 +62,7 @@ router.post('/slots/order', function(req, res, next) {
     },
     function(err) {
       logger.error("Error in booking slot for order ", err);
-      return res.status(400).json({
-        error: err
-      });
+      return res.status(400).json(err);
     }
   );
 

@@ -14,5 +14,5 @@
 - The API is expected can also support list of orders, so that orders belonging to closer by address can be booked to same slot (assuming grouping the order by their address is outside the scope of this slot allocating module)
 - The APIs (system) will only give slot booking current day(today) and for the next X days, not any earlier to it  (Order has to be slotted for a current day or future, never in a past date)
 - Not considering max vans for slotting, instead considering as Slot capacity, which is equal to maximum cartons per slot we can fit it, so that logistics of vans can be kept extensible and abstracted 
-
+- No holidays are considered or counted in the calculations, we could handle it differently later
 - At End-Of-Day a separate process is run, which initializes the day's slots 
