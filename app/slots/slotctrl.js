@@ -4,6 +4,42 @@ var logger = require('../../applogger');
 var SlotConsts = require('./slotconsts');
 var CartonModel = require('./cartons');
 
+var getOrderSlot = function(orderid, successCB, errorCB) {
+  logger.info('Finding slots for order ', orderid);
+
+  CartonModel.find({
+    items: {
+      '$elemMatch': {
+        'orderid': orderid
+      }
+    }
+  }, function(err, bookedCartonColln) {
+    if (err) {
+      errorCB({
+        error: err
+      });
+    }
+
+    var resultColln = []
+    if (bookedCartonColln) {
+      resultColln = bookedCartonColln.map(function(carton) {
+        var result = {
+          slottime: carton.slottime,
+          slotday: carton.slotday,
+          cartontag: carton.cartontag,
+          size: carton.size,
+          totalitems: carton.totalitems
+        };
+
+        return result;
+      });
+    } //end of if
+
+    successCB(resultColln);
+
+  });
+}
+
 var bookAvailableSlot = function(order, successCB, errorCB) {
   logger.info('Booking slots for order ', order);
 
@@ -138,5 +174,6 @@ var bookOrder = function(reqDate, order) {
 }
 
 module.exports = {
+  getOrderSlot: getOrderSlot,
   bookSlot: bookAvailableSlot
 }

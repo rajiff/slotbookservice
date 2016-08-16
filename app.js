@@ -20,6 +20,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 var dbURI = 'mongodb://localhost/' + config.appdb;
+// var dbURI = 'mongodb://app:app@ds161315.mlab.com:61315/slotorders';
 mongoose.connect(dbURI);
 mongoose.connection.on('connected', function() {
   logger.debug('Mongoose connected to ' + dbURI);

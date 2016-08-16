@@ -177,48 +177,66 @@ describe('Slot Booking', function() {
         });
     });
 
-    /*it('Book and fill all days or slots', function(done) {
-      for (i = 0; i < (320 * 5); i++) {
-        process.nextTick(function() {
-          _bookOrder(i, done);
-        });
-      } //end of looping to fill all days
-
-      it('Booking a small package, after all 5 days filled', function(
-        done) {
-        var order = {
-          orderid: 9999,
-          items: [{
-              "itemid": 1,
-              "height": '2',
-              "width": '2',
-              "breadth": '2'
+    it('Get details of slot for a booked order', function(done) {
+      var orderId = '777';
+      var order = {
+        orderid: orderId,
+        items: [{
+            "itemid": '101',
+            "height": '5',
+            "width": '3',
+            "breadth": '7'
+            },
+          {
+            "itemid": '102',
+            "height": '3',
+            "width": '3',
+            "breadth": '5'
             }
           ]
-        };
+      };
 
-        request.post('/slots/order')
-          .send(order)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              return done(err);
-            }
+      var slotDay = moment().format(SlotConsts.SLOT_DATE_FORMAT);
 
-            //console.log("Booked order to carton: ", res.body);
+      request.post('/slots/order')
+        .send(order)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            return done(err);
+          }
 
-            expect(res.body.totalitems).to.be.least(order.items.length);
-            expect(res.body.cartontag).to.not.be.equal(undefined);
-            expect(res.body.slotday).to.not.be.equal(undefined);
-            expect(res.body.slottime).to.not.be.equal(undefined);
+          // console.log("Booked order to carton: ", res.body);
 
-            done();
-          });
-      });
+          expect(res.body.totalitems).to.be.least(order.items.length);
+          expect(res.body.cartontag).to.not.be.equal(undefined);
+          expect(res.body.slotday).to.not.be.equal(undefined);
+          expect(res.body.slottime).to.not.be.equal(undefined);
+          expect(res.body.slotday).to.be.equal(slotDay);
 
-    });*/
+          request.get('/slots/order/' + orderId)
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function(err, getRes) {
+              if (err) {
+                return done(err);
+              }
+
+              console.log("Booked order for order Id: ", orderId,
+                " is ", getRes.body);
+
+              expect(getRes.body[0].cartontag).to.be.equal(res.body.cartontag);
+              expect(getRes.body[0].slotday).to.be.equal(res.body.slotday);
+              expect(getRes.body[0].totalitems).to.be.least(res.body.totalitems);
+
+              done();
+            });
+        });
+    });
+
 
   }); //end of test plan for booking from empty database
 

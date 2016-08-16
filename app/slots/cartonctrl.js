@@ -4,6 +4,23 @@ var logger = require('../../applogger');
 var SlotConsts = require('./slotconsts');
 var CartonModel = require('./cartons');
 
+var getDaySlots = function(slotDay) {
+  return new Promise(function(resolve, reject) {
+    CartonModel.find({}, function(err, cartonColln) {
+      if (err) {
+        logger.error("Error in obtaining cartons for day ", slotDay,
+          " ", err);
+
+        return reject(err);
+      } else {
+        logger.debug("Found ", cartonColln.length, " cartons");
+
+        return resolve(cartonColln);
+      }
+    })
+  });
+}
+
 var initializeDaySlots = function(slotDay) {
   return new Promise(function(resolve, reject) {
     //Initialize all the slots of a day
@@ -46,5 +63,6 @@ var initializeDaySlots = function(slotDay) {
 
 
 module.exports = {
+  getDaySlots: getDaySlots,
   initializeSlots: initializeDaySlots
 }

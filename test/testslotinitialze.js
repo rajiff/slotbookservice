@@ -1,7 +1,7 @@
 var app = require('../app');
 var config = require('../appconfig');
 const mongoose = require('mongoose');
-
+var expect = require('chai').expect;
 var request = require("supertest");
 
 request = request(app);
@@ -73,6 +73,29 @@ describe('Initialize carton slots and their containers for a given day(date)',
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200, done);
+      }
+    );
+  }
+);
+
+describe('Initialize carton slots and their containers for a given day(date)',
+  function() {
+    it('Obtaining slots for a date',
+      function(done) {
+        request.get('/cartons/day' + '?' + 'date=' + Date())
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {
+              return done(err);
+            }
+
+            console.log("Got slots ", res.body);
+
+            expect(res.body.length).to.be.least(1);
+            done();
+          });
       }
     );
 
